@@ -1,20 +1,20 @@
 /*
  * @(#)CrowdMailAddressResolverImpl.java
- * 
+ *
  * The MIT License
- * 
+ *
  * Copyright (C)2011 Thorsten Heit.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,21 +25,21 @@
  */
 package de.theit.jenkins.crowd;
 
-import hudson.Extension;
-import hudson.model.Hudson;
-import hudson.model.User;
-import hudson.security.SecurityRealm;
-import hudson.tasks.MailAddressResolver;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.acegisecurity.userdetails.UsernameNotFoundException;
 import org.springframework.dao.DataAccessException;
 
+import hudson.Extension;
+import hudson.model.User;
+import hudson.security.SecurityRealm;
+import hudson.tasks.MailAddressResolver;
+import jenkins.model.Jenkins;
+
 /**
  * This class resolves email addresses via lookup in Crowd.
- * 
+ *
  * @author <a href="mailto:theit@gmx.de">Thorsten Heit (theit@gmx.de)</a>
  * @since 08.09.2011
  * @version $Id$
@@ -51,13 +51,13 @@ public class CrowdMailAddressResolverImpl extends MailAddressResolver {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see hudson.tasks.MailAddressResolver#findMailAddressFor(hudson.model.User)
    */
   @Override
   public String findMailAddressFor(User u) {
     String mail = null;
-    SecurityRealm realm = Hudson.getInstance().getSecurityRealm();
+    SecurityRealm realm = Jenkins.getInstance().getSecurityRealm();
 
     if (realm instanceof CrowdSecurityRealm) {
       try {

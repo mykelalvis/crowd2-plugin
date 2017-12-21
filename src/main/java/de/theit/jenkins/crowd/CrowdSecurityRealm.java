@@ -1,20 +1,20 @@
 /*
  * @(#)CrowdSecurityRealm.java
- * 
+ *
  * The MIT License
- * 
+ *
  * Copyright (C)2011 Thorsten Heit.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,13 +37,6 @@ import static de.theit.jenkins.crowd.ErrorMessages.specifyCrowdUrl;
 import static de.theit.jenkins.crowd.ErrorMessages.specifySessionValidationInterval;
 import static de.theit.jenkins.crowd.ErrorMessages.userNotFound;
 import static de.theit.jenkins.crowd.ErrorMessages.userNotValid;
-import hudson.Extension;
-import hudson.model.Descriptor;
-import hudson.model.Hudson;
-import hudson.security.AbstractPasswordBasedSecurityRealm;
-import hudson.security.GroupDetails;
-import hudson.security.SecurityRealm;
-import hudson.util.FormValidation;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -88,10 +81,18 @@ import com.atlassian.crowd.model.group.Group;
 import com.atlassian.crowd.model.user.User;
 import com.atlassian.crowd.service.client.ClientPropertiesImpl;
 
+import hudson.Extension;
+import hudson.model.Descriptor;
+import hudson.security.AbstractPasswordBasedSecurityRealm;
+import hudson.security.GroupDetails;
+import hudson.security.SecurityRealm;
+import hudson.util.FormValidation;
+import jenkins.model.Jenkins;
+
 /**
  * This class provides the security realm for authenticating users against a
  * remote Crowd server.
- * 
+ *
  * @author <a href="mailto:theit@gmx.de">Thorsten Heit (theit@gmx.de)</a>
  * @since 06.09.2011
  * @version $Id$
@@ -230,7 +231,7 @@ public class CrowdSecurityRealm extends AbstractPasswordBasedSecurityRealm {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see hudson.security.SecurityRealm#createSecurityComponents()
    */
   @Override
@@ -252,13 +253,13 @@ public class CrowdSecurityRealm extends AbstractPasswordBasedSecurityRealm {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see hudson.security.SecurityRealm#doLogout(org.kohsuke.stapler.StaplerRequest,
    *      org.kohsuke.stapler.StaplerResponse)
    */
   @Override
   public void doLogout(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
-    SecurityRealm realm = Hudson.getInstance().getSecurityRealm();
+    SecurityRealm realm = Jenkins.getInstance().getSecurityRealm();
 
     if (useSSO) {
       if (realm instanceof CrowdSecurityRealm
@@ -272,7 +273,7 @@ public class CrowdSecurityRealm extends AbstractPasswordBasedSecurityRealm {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see hudson.security.SecurityRealm#createFilter(javax.servlet.FilterConfig)
    */
   @Override
@@ -292,7 +293,7 @@ public class CrowdSecurityRealm extends AbstractPasswordBasedSecurityRealm {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see hudson.security.AbstractPasswordBasedSecurityRealm#loadUserByUsername(java.lang.String)
    */
   @Override
@@ -302,7 +303,7 @@ public class CrowdSecurityRealm extends AbstractPasswordBasedSecurityRealm {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see hudson.security.SecurityRealm#loadGroupByGroupname(java.lang.String)
    */
   @Override
@@ -340,7 +341,7 @@ public class CrowdSecurityRealm extends AbstractPasswordBasedSecurityRealm {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see hudson.security.AbstractPasswordBasedSecurityRealm#authenticate(java.lang.String,
    *      java.lang.String)
    */
@@ -398,7 +399,7 @@ public class CrowdSecurityRealm extends AbstractPasswordBasedSecurityRealm {
   /**
    * Descriptor for {@link CrowdSecurityRealm}. Used as a singleton. The class
    * is marked as public so that it can be accessed from views.
-   * 
+   *
    * @author <a href="mailto:theit@gmx.de">Thorsten Heit (theit@gmx.de)</a>
    * @since 06.09.2011 13:35:41
    * @version $Id$
@@ -414,15 +415,15 @@ public class CrowdSecurityRealm extends AbstractPasswordBasedSecurityRealm {
 
     /**
      * Performs on-the-fly validation of the form field 'url'.
-     * 
+     *
      * @param url
      *            The URL of the Crowd server.
-     * 
+     *
      * @return Indicates the outcome of the validation. This is sent to the
      *         browser.
      */
     public FormValidation doCheckUrl(@QueryParameter final String url) {
-      if (!Hudson.getInstance().hasPermission(Hudson.ADMINISTER)) {
+      if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
         return FormValidation.ok();
       }
 
@@ -435,15 +436,15 @@ public class CrowdSecurityRealm extends AbstractPasswordBasedSecurityRealm {
 
     /**
      * Performs on-the-fly validation of the form field 'application name'.
-     * 
+     *
      * @param applicationName
      *            The application name.
-     * 
+     *
      * @return Indicates the outcome of the validation. This is sent to the
      *         browser.
      */
     public FormValidation doCheckApplicationName(@QueryParameter final String applicationName) {
-      if (!Hudson.getInstance().hasPermission(Hudson.ADMINISTER)) {
+      if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
         return FormValidation.ok();
       }
 
@@ -456,15 +457,15 @@ public class CrowdSecurityRealm extends AbstractPasswordBasedSecurityRealm {
 
     /**
      * Performs on-the-fly validation of the form field 'password'.
-     * 
+     *
      * @param password
      *            The application's password.
-     * 
+     *
      * @return Indicates the outcome of the validation. This is sent to the
      *         browser.
      */
     public FormValidation doCheckPassword(@QueryParameter final String password) {
-      if (!Hudson.getInstance().hasPermission(Hudson.ADMINISTER)) {
+      if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
         return FormValidation.ok();
       }
 
@@ -478,21 +479,20 @@ public class CrowdSecurityRealm extends AbstractPasswordBasedSecurityRealm {
     /**
      * Performs on-the-fly validation of the form field 'session validation
      * interval'.
-     * 
+     *
      * @param sessionValidationInterval
      *            The session validation interval time in minutes.
      * @return Indicates the outcome of the validation. This is sent to the
      *         browser.
      */
     public FormValidation doCheckSessionValidationInterval(@QueryParameter final String sessionValidationInterval) {
-      if (!Hudson.getInstance().hasPermission(Hudson.ADMINISTER)) {
+      if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
         return FormValidation.ok();
       }
 
       try {
-        if (0 == sessionValidationInterval.length() || Integer.valueOf(sessionValidationInterval) < 0) {
+        if (0 == sessionValidationInterval.length() || Integer.parseInt(sessionValidationInterval) < 0)
           return FormValidation.error(specifySessionValidationInterval());
-        }
       } catch (NumberFormatException ex) {
         return FormValidation.error(specifySessionValidationInterval());
       }
@@ -503,7 +503,7 @@ public class CrowdSecurityRealm extends AbstractPasswordBasedSecurityRealm {
     /**
      * Checks whether the connection to the Crowd server can be established
      * using the given credentials.
-     * 
+     *
      * @param url
      *            The URL of the Crowd server.
      * @param applicationName
@@ -512,7 +512,7 @@ public class CrowdSecurityRealm extends AbstractPasswordBasedSecurityRealm {
      *            The application's password.
      * @param group
      *            The Crowd groups users have to belong to if specified.
-     * 
+     *
      * @return Indicates the outcome of the validation. This is sent to the
      *         browser.
      */
@@ -560,7 +560,7 @@ public class CrowdSecurityRealm extends AbstractPasswordBasedSecurityRealm {
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * @see hudson.model.Descriptor#getDisplayName()
      */
     @Override

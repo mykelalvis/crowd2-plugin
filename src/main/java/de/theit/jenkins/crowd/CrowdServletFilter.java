@@ -1,20 +1,20 @@
 /*
  * @(#)CrowdServletFilter.java
- * 
+ *
  * The MIT License
- * 
+ *
  * Copyright (C)2011 Thorsten Heit.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -55,7 +55,7 @@ import com.atlassian.crowd.exception.OperationFailedException;
  * of the SSO session. If the session isn't valid anymore, the user is logged
  * out automatically, and vice-versa: If there's a SSO session but the user
  * isn't logged in, (s)he is automatically logged in.
- * 
+ *
  * @author <a href="mailto:theit@gmx.de">Thorsten Heit (theit@gmx.de)</a>
  * @since 09.09.2011
  * @version $Id$
@@ -84,7 +84,7 @@ public class CrowdServletFilter implements Filter {
 
   /**
    * Creates a new instance of this class.
-   * 
+   *
    * @param pSecurityRealm
    *            The Crowd security realm. Necessary for logging out users when
    *            the SSO session isn't valid anymore. May not be
@@ -109,7 +109,7 @@ public class CrowdServletFilter implements Filter {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
    */
   @Override
@@ -119,7 +119,7 @@ public class CrowdServletFilter implements Filter {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest,
    *      javax.servlet.ServletResponse, javax.servlet.FilterChain)
    */
@@ -134,7 +134,7 @@ public class CrowdServletFilter implements Filter {
       // if it is not present, we are not / no longer authenticated
       boolean isValidated = false;
       try {
-        isValidated = this.configuration.crowdHttpAuthenticator.isAuthenticated(req, res);
+        isValidated = this.configuration.crowdHttpAuthenticator.checkAuthenticated(req, res).isAuthenticated();
       } catch (OperationFailedException ex) {
         LOG.log(Level.SEVERE, operationFailed(), ex);
       }
@@ -190,7 +190,7 @@ public class CrowdServletFilter implements Filter {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see javax.servlet.Filter#destroy()
    */
   @Override

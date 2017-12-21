@@ -30,7 +30,6 @@ import static de.theit.jenkins.crowd.ErrorMessages.invalidAuthentication;
 import static de.theit.jenkins.crowd.ErrorMessages.operationFailed;
 import static de.theit.jenkins.crowd.ErrorMessages.userNotFound;
 import static de.theit.jenkins.crowd.ErrorMessages.userNotValid;
-import hudson.security.SecurityRealm;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +48,8 @@ import com.atlassian.crowd.exception.InvalidAuthenticationException;
 import com.atlassian.crowd.exception.OperationFailedException;
 import com.atlassian.crowd.exception.UserNotFoundException;
 import com.atlassian.crowd.model.user.User;
+
+import hudson.security.SecurityRealm;
 
 /**
  * This class provides the service to load a user object from the remote Crowd

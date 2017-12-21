@@ -32,9 +32,6 @@ import static de.theit.jenkins.crowd.ErrorMessages.expiredCredentials;
 import static de.theit.jenkins.crowd.ErrorMessages.invalidAuthentication;
 import static de.theit.jenkins.crowd.ErrorMessages.operationFailed;
 
-import hudson.model.Hudson;
-import hudson.security.SecurityRealm;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -43,7 +40,6 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import jenkins.model.Jenkins;
 import org.acegisecurity.Authentication;
 import org.acegisecurity.GrantedAuthority;
 import org.acegisecurity.ui.rememberme.RememberMeServices;
@@ -57,7 +53,8 @@ import com.atlassian.crowd.exception.InvalidTokenException;
 import com.atlassian.crowd.exception.OperationFailedException;
 import com.atlassian.crowd.model.authentication.ValidationFactor;
 import com.atlassian.crowd.model.user.User;
-import org.acegisecurity.userdetails.UserDetails;
+
+import hudson.security.SecurityRealm;
 
 /**
  * An implementation of the {@link RememberMeServices} to use SSO with Crowd.

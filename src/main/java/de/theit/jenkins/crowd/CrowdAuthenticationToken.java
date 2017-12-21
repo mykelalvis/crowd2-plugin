@@ -27,11 +27,12 @@ package de.theit.jenkins.crowd;
 
 import java.util.List;
 
-import jenkins.model.Jenkins;
 import org.acegisecurity.GrantedAuthority;
 import org.acegisecurity.providers.AbstractAuthenticationToken;
 import org.acegisecurity.userdetails.UserDetails;
 import org.apache.commons.lang.StringUtils;
+
+import jenkins.model.Jenkins;
 
 /**
  * This class represents an authentication token that is created after a user
