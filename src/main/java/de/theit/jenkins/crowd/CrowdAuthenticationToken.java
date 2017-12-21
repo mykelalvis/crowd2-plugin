@@ -42,102 +42,102 @@ import org.apache.commons.lang.StringUtils;
  * @version $Id$
  */
 public class CrowdAuthenticationToken extends AbstractAuthenticationToken {
-	/** For serialization. */
-	private static final long serialVersionUID = 7685110934682676618L;
+  /** For serialization. */
+  private static final long serialVersionUID = 7685110934682676618L;
 
-	/** The SSO token. */
-	private String credentials;
+  /** The SSO token. */
+  private String credentials;
 
-	/** The authenticated Crowd user. */
-	private UserDetails principal;
+  /** The authenticated Crowd user. */
+  private UserDetails principal;
 
-	/** The Crowd SSO token after a successful login. */
-	private String ssoToken;
+  /** The Crowd SSO token after a successful login. */
+  private String ssoToken;
 
-	/**
-	 * Creates a new authorization token.
-	 * 
-	 * @param pPrincipal
-	 *            The name of the authenticated Crowd user. May not be
-	 *            <code>null</code>.
-	 * @param pCredentials
-	 *            The credentials. Normally the users password. May only be
-	 *            <code>null</code> when the SSO token is given.
-	 * @param authorities
-	 *            The list of granted authorities for the user. May not be
-	 *            <code>null</code>.
-	 * @param pSsoToken
-	 *            The Crowd SSO token. May be <code>null</code> if the token is
-	 *            not (yet) available.
-	 */
-	public CrowdAuthenticationToken(String pPrincipal, String pCredentials,
-			List<GrantedAuthority> authorities, String pSsoToken) {
-		super(authorities.toArray(new GrantedAuthority[authorities.size()]));
-		this.principal =  Jenkins.getInstance().getSecurityRealm().loadUserByUsername(pPrincipal);
-		this.credentials = pCredentials;
-		this.ssoToken = pSsoToken;
-		super.setAuthenticated(true);
-	}
+  /**
+   * Creates a new authorization token.
+   * 
+   * @param pPrincipal
+   *            The name of the authenticated Crowd user. May not be
+   *            <code>null</code>.
+   * @param pCredentials
+   *            The credentials. Normally the users password. May only be
+   *            <code>null</code> when the SSO token is given.
+   * @param authorities
+   *            The list of granted authorities for the user. May not be
+   *            <code>null</code>.
+   * @param pSsoToken
+   *            The Crowd SSO token. May be <code>null</code> if the token is
+   *            not (yet) available.
+   */
+  public CrowdAuthenticationToken(String pPrincipal, String pCredentials, List<GrantedAuthority> authorities,
+      String pSsoToken) {
+    super(authorities.toArray(new GrantedAuthority[authorities.size()]));
+    this.principal = Jenkins.getInstance().getSecurityRealm().loadUserByUsername(pPrincipal);
+    this.credentials = pCredentials;
+    this.ssoToken = pSsoToken;
+    super.setAuthenticated(true);
+  }
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @see org.acegisecurity.Authentication#getCredentials()
-	 */
-	@Override
-	public String getCredentials() {
-		return this.credentials;
-	}
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.acegisecurity.Authentication#getCredentials()
+   */
+  @Override
+  public String getCredentials() {
+    return this.credentials;
+  }
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @see org.acegisecurity.Authentication#getPrincipal()
-	 */
-	@Override
-	public UserDetails getPrincipal() {
-		return this.principal;
-	}
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.acegisecurity.Authentication#getPrincipal()
+   */
+  @Override
+  public UserDetails getPrincipal() {
+    return this.principal;
+  }
 
-	/**
-	 * Returns the SSO token.
-	 * 
-	 * @return The SSO token. <code>null</code> if the token is not (yet)
-	 *         available.
-	 */
-	public String getSSOToken() {
-		return this.ssoToken;
-	}
+  /**
+   * Returns the SSO token.
+   * 
+   * @return The SSO token. <code>null</code> if the token is not (yet)
+   *         available.
+   */
+  public String getSSOToken() {
+    return this.ssoToken;
+  }
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @see org.acegisecurity.providers.AbstractAuthenticationToken#getName()
-	 */
-	@Override
-	public String getName() {
-	return super.getName();
-	/*
-		if (null == this.displayName) {
-			return super.getName();
-		}
-		// append the user Id stored in getName() at the end of the display name
-		return this.displayName + " (" + super.getName() + ')';
-		*/
-	}
-	
-	
-	 public  static void updateUserInfo(com.atlassian.crowd.model.user.User user) {
-	    final String displayName = user == null ? null :  user.getDisplayName();
-        if(StringUtils.isNotBlank(displayName)){
-            final String username = user.getName();
-            getJenkinsUser(username).setFullName(displayName + " (" + username+ ')');
-        }	
-	 }
-    /**
-     * Gets the corresponding {@link hudson.model.User} object.
-     */
-    private static hudson.model.User getJenkinsUser(String username) {
-        return hudson.model.User.get(username);
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.acegisecurity.providers.AbstractAuthenticationToken#getName()
+   */
+  @Override
+  public String getName() {
+    return super.getName();
+    /*
+    	if (null == this.displayName) {
+    		return super.getName();
+    	}
+    	// append the user Id stored in getName() at the end of the display name
+    	return this.displayName + " (" + super.getName() + ')';
+    	*/
+  }
+
+  public static void updateUserInfo(com.atlassian.crowd.model.user.User user) {
+    final String displayName = user == null ? null : user.getDisplayName();
+    if (StringUtils.isNotBlank(displayName)) {
+      final String username = user.getName();
+      getJenkinsUser(username).setFullName(displayName + " (" + username + ')');
     }
+  }
+
+  /**
+   * Gets the corresponding {@link hudson.model.User} object.
+   */
+  private static hudson.model.User getJenkinsUser(String username) {
+    return hudson.model.User.get(username);
+  }
 }

@@ -65,113 +65,102 @@ import com.atlassian.crowd.model.user.User;
  * @version $Id$
  */
 public class CrowdAuthenticationManager implements AuthenticationManager {
-	/** Used for logging purposes. */
-	private static final Logger LOG = Logger
-			.getLogger(CrowdAuthenticationManager.class.getName());
+  /** Used for logging purposes. */
+  private static final Logger LOG = Logger.getLogger(CrowdAuthenticationManager.class.getName());
 
-	/**
-	 * The configuration data necessary for accessing the services on the remote
-	 * Crowd server.
-	 */
-	private CrowdConfigurationService configuration;
+  /**
+   * The configuration data necessary for accessing the services on the remote
+   * Crowd server.
+   */
+  private CrowdConfigurationService configuration;
 
-	/**
-	 * Creates a new instance of this class.
-	 * 
-	 * @param pConfiguration
-	 *            The configuration to access the services on the remote Crowd
-	 *            server. May not be <code>null</code>.
-	 */
-	public CrowdAuthenticationManager(CrowdConfigurationService pConfiguration) {
-		this.configuration = pConfiguration;
-	}
+  /**
+   * Creates a new instance of this class.
+   * 
+   * @param pConfiguration
+   *            The configuration to access the services on the remote Crowd
+   *            server. May not be <code>null</code>.
+   */
+  public CrowdAuthenticationManager(CrowdConfigurationService pConfiguration) {
+    this.configuration = pConfiguration;
+  }
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @see org.acegisecurity.AuthenticationManager#authenticate(org.acegisecurity.Authentication)
-	 */
-	@Override
-	public Authentication authenticate(Authentication authentication)
-			throws AuthenticationException {
-		String username = authentication.getPrincipal().toString();
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.acegisecurity.AuthenticationManager#authenticate(org.acegisecurity.Authentication)
+   */
+  @Override
+  public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+    String username = authentication.getPrincipal().toString();
 
-		// checking whether there's already a SSO token
-		if (null == authentication.getCredentials()
-				&& authentication instanceof CrowdAuthenticationToken
-				&& null != ((CrowdAuthenticationToken) authentication)
-						.getSSOToken()) {
-			// SSO token available => user already authenticated
-			if (LOG.isLoggable(Level.FINER)) {
-				LOG.finer("User '" + username + "' already authenticated");
-			}
-			return authentication;
-		}
+    // checking whether there's already a SSO token
+    if (null == authentication.getCredentials() && authentication instanceof CrowdAuthenticationToken
+        && null != ((CrowdAuthenticationToken) authentication).getSSOToken()) {
+      // SSO token available => user already authenticated
+      if (LOG.isLoggable(Level.FINER)) {
+        LOG.finer("User '" + username + "' already authenticated");
+      }
+      return authentication;
+    }
 
-		String password = authentication.getCredentials().toString();
+    String password = authentication.getCredentials().toString();
 
-		if (! this.configuration.allowedGroupNames.isEmpty()) {
-			// ensure that the group is available, active and that the user
-			// is a member of it
-			if (!this.configuration.isGroupMember(username)) {
-				throw new InsufficientAuthenticationException(userNotValid(
-					username, this.configuration.allowedGroupNames));
-			}
-		}
+    if (!this.configuration.allowedGroupNames.isEmpty()) {
+      // ensure that the group is available, active and that the user
+      // is a member of it
+      if (!this.configuration.isGroupMember(username)) {
+        throw new InsufficientAuthenticationException(userNotValid(username, this.configuration.allowedGroupNames));
+      }
+    }
 
-		//String displayName = null;
-		try {
-			// authenticate user
-			if (LOG.isLoggable(Level.FINE)) {
-				LOG.fine("Authenticating user: " + username);
-			}
-			User user = this.configuration.crowdClient.authenticateUser(
-					username, password);
-			CrowdAuthenticationToken.updateUserInfo(user);
-			//displayName = user.getDisplayName();
-		} catch (UserNotFoundException ex) {
-			if (LOG.isLoggable(Level.INFO)) {
-				LOG.info(userNotFound(username));
-			}
-			throw new BadCredentialsException(userNotFound(username), ex);
-		} catch (ExpiredCredentialException ex) {
-			LOG.warning(expiredCredentials(username));
-			throw new CredentialsExpiredException(expiredCredentials(username),
-					ex);
-		} catch (InactiveAccountException ex) {
-			LOG.warning(accountExpired(username));
-			throw new AccountExpiredException(accountExpired(username), ex);
-		} catch (ApplicationPermissionException ex) {
-			LOG.warning(applicationPermission());
-			throw new AuthenticationServiceException(applicationPermission(),
-					ex);
-		} catch (InvalidAuthenticationException ex) {
-			LOG.warning(invalidAuthentication());
-			throw new AuthenticationServiceException(invalidAuthentication(),
-					ex);
-		} catch (OperationFailedException ex) {
-			LOG.log(Level.SEVERE, operationFailed(), ex);
-			throw new AuthenticationServiceException(operationFailed(), ex);
-		}
+    //String displayName = null;
+    try {
+      // authenticate user
+      if (LOG.isLoggable(Level.FINE)) {
+        LOG.fine("Authenticating user: " + username);
+      }
+      User user = this.configuration.crowdClient.authenticateUser(username, password);
+      CrowdAuthenticationToken.updateUserInfo(user);
+      //displayName = user.getDisplayName();
+    } catch (UserNotFoundException ex) {
+      if (LOG.isLoggable(Level.INFO)) {
+        LOG.info(userNotFound(username));
+      }
+      throw new BadCredentialsException(userNotFound(username), ex);
+    } catch (ExpiredCredentialException ex) {
+      LOG.warning(expiredCredentials(username));
+      throw new CredentialsExpiredException(expiredCredentials(username), ex);
+    } catch (InactiveAccountException ex) {
+      LOG.warning(accountExpired(username));
+      throw new AccountExpiredException(accountExpired(username), ex);
+    } catch (ApplicationPermissionException ex) {
+      LOG.warning(applicationPermission());
+      throw new AuthenticationServiceException(applicationPermission(), ex);
+    } catch (InvalidAuthenticationException ex) {
+      LOG.warning(invalidAuthentication());
+      throw new AuthenticationServiceException(invalidAuthentication(), ex);
+    } catch (OperationFailedException ex) {
+      LOG.log(Level.SEVERE, operationFailed(), ex);
+      throw new AuthenticationServiceException(operationFailed(), ex);
+    }
 
-		// user successfully authenticated
-		// => retrieve the list of groups the user is a member of
-		List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+    // user successfully authenticated
+    // => retrieve the list of groups the user is a member of
+    List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
 
-		// add the "authenticated" authority to the list of granted
-		// authorities...
-		authorities.add(SecurityRealm.AUTHENTICATED_AUTHORITY);
-		// ..and finally all authorities retrieved from the Crowd server
-		authorities.addAll(this.configuration.getAuthoritiesForUser(username));
+    // add the "authenticated" authority to the list of granted
+    // authorities...
+    authorities.add(SecurityRealm.AUTHENTICATED_AUTHORITY);
+    // ..and finally all authorities retrieved from the Crowd server
+    authorities.addAll(this.configuration.getAuthoritiesForUser(username));
 
-		// user successfully authenticated => create authentication token
-		if (LOG.isLoggable(Level.FINE)) {
-			LOG.fine("User successfully authenticated; creating authentication token");
-		}
-	
-		return new CrowdAuthenticationToken(username, password, authorities,null);
-	}
-	
-	
+    // user successfully authenticated => create authentication token
+    if (LOG.isLoggable(Level.FINE)) {
+      LOG.fine("User successfully authenticated; creating authentication token");
+    }
+
+    return new CrowdAuthenticationToken(username, password, authorities, null);
+  }
 
 }
