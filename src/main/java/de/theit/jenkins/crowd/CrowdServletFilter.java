@@ -25,9 +25,6 @@
  */
 package de.theit.jenkins.crowd;
 
-import static de.theit.jenkins.crowd.ErrorMessages.operationFailed;
-import static org.acegisecurity.ui.rememberme.TokenBasedRememberMeServices.ACEGI_SECURITY_HASHED_REMEMBER_ME_COOKIE_KEY;
-
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,6 +44,7 @@ import org.acegisecurity.Authentication;
 import org.acegisecurity.context.SecurityContext;
 import org.acegisecurity.context.SecurityContextHolder;
 import org.acegisecurity.ui.rememberme.RememberMeServices;
+import org.acegisecurity.ui.rememberme.TokenBasedRememberMeServices;
 
 import com.atlassian.crowd.exception.OperationFailedException;
 
@@ -68,19 +66,19 @@ public class CrowdServletFilter implements Filter {
    * The configuration data necessary for accessing the services on the remote
    * Crowd server.
    */
-  private CrowdConfigurationService configuration;
+  private final CrowdConfigurationService configuration;
 
   /** The default servlet filter. */
-  private Filter defaultFilter;
+  private final Filter defaultFilter;
+
+  /** Holds the {@link RememberMeServices} that is used for auto-login. */
+  private CrowdRememberMeServices rememberMe;
 
   /**
    * The Crowd security realm. Used for logging out users when the SSO session
    * isn't valid anymore.
    */
-  private CrowdSecurityRealm securityRealm;
-
-  /** Holds the {@link RememberMeServices} that is used for auto-login. */
-  private CrowdRememberMeServices rememberMe;
+  private final CrowdSecurityRealm securityRealm;
 
   /**
    * Creates a new instance of this class.
@@ -102,19 +100,18 @@ public class CrowdServletFilter implements Filter {
     this.configuration = pConfiguration;
     this.defaultFilter = pDefaultFilter;
 
-    if (this.securityRealm.getSecurityComponents().rememberMe instanceof CrowdRememberMeServices) {
+    if (this.securityRealm.getSecurityComponents().rememberMe instanceof CrowdRememberMeServices)
       this.rememberMe = (CrowdRememberMeServices) this.securityRealm.getSecurityComponents().rememberMe;
-    }
   }
 
   /**
    * {@inheritDoc}
    *
-   * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
+   * @see javax.servlet.Filter#destroy()
    */
   @Override
-  public void init(FilterConfig filterConfig) throws ServletException {
-    this.defaultFilter.init(filterConfig);
+  public void destroy() {
+    this.defaultFilter.destroy();
   }
 
   /**
@@ -127,61 +124,56 @@ public class CrowdServletFilter implements Filter {
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
       throws IOException, ServletException {
     if (request instanceof HttpServletRequest && response instanceof HttpServletResponse) {
-      HttpServletRequest req = (HttpServletRequest) request;
-      HttpServletResponse res = (HttpServletResponse) response;
+      final HttpServletRequest req = (HttpServletRequest) request;
+      final HttpServletResponse res = (HttpServletResponse) response;
 
       // check if we have a token
       // if it is not present, we are not / no longer authenticated
       boolean isValidated = false;
       try {
         isValidated = this.configuration.crowdHttpAuthenticator.checkAuthenticated(req, res).isAuthenticated();
-      } catch (OperationFailedException ex) {
-        LOG.log(Level.SEVERE, operationFailed(), ex);
+      } catch (final OperationFailedException ex) {
+        CrowdServletFilter.LOG.log(Level.SEVERE, ErrorMessages.operationFailed(), ex);
       }
 
       if (!isValidated) {
-        if (LOG.isLoggable(Level.FINE)) {
-          LOG.fine("User is not logged in (anymore) via Crowd => logout user");
-        }
-        SecurityContext sc = SecurityContextHolder.getContext();
+        if (CrowdServletFilter.LOG.isLoggable(Level.FINE))
+          CrowdServletFilter.LOG.fine("User is not logged in (anymore) via Crowd => logout user");
+        final SecurityContext sc = SecurityContextHolder.getContext();
         sc.setAuthentication(null);
         // close the SSO session
-        if (null != this.rememberMe) {
+        if (null != this.rememberMe)
           this.rememberMe.logout(req, res);
-        }
 
         // invalidate the current session
         // (see SecurityRealm#doLogout())
-        HttpSession session = req.getSession(false);
-        if (session != null) {
+        final HttpSession session = req.getSession(false);
+        if (session != null)
           session.invalidate();
-        }
         SecurityContextHolder.clearContext();
 
         // reset remember-me cookie
-        Cookie cookie = new Cookie(ACEGI_SECURITY_HASHED_REMEMBER_ME_COOKIE_KEY, "");
+        final Cookie cookie = new Cookie(TokenBasedRememberMeServices.ACEGI_SECURITY_HASHED_REMEMBER_ME_COOKIE_KEY, "");
         cookie.setPath(req.getContextPath().length() > 0 ? req.getContextPath() : "/");
         res.addCookie(cookie);
       } else {
-        SecurityContext sc = SecurityContextHolder.getContext();
+        final SecurityContext sc = SecurityContextHolder.getContext();
 
-        if (!(sc.getAuthentication() instanceof CrowdAuthenticationToken)) {
+        if (!(sc.getAuthentication() instanceof CrowdAuthenticationToken))
           // user logged in via Crowd, but no Crowd-specific
           // authentication token available
           // => try to auto-login the user
           if (null != this.rememberMe) {
-            if (LOG.isLoggable(Level.FINE)) {
-              LOG.fine("User is logged in via Crowd, but no authentication token available; trying auto-login...");
-            }
-            Authentication auth = this.rememberMe.autoLogin(req, res);
+            if (CrowdServletFilter.LOG.isLoggable(Level.FINE))
+              CrowdServletFilter.LOG
+                  .fine("User is logged in via Crowd, but no authentication token available; trying auto-login...");
+            final Authentication auth = this.rememberMe.autoLogin(req, res);
             if (null != auth) {
-              if (LOG.isLoggable(Level.FINE)) {
-                LOG.fine("User sucessfully logged in");
-              }
+              if (CrowdServletFilter.LOG.isLoggable(Level.FINE))
+                CrowdServletFilter.LOG.fine("User sucessfully logged in");
               sc.setAuthentication(auth);
             }
           }
-        }
       }
     }
 
@@ -191,10 +183,10 @@ public class CrowdServletFilter implements Filter {
   /**
    * {@inheritDoc}
    *
-   * @see javax.servlet.Filter#destroy()
+   * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
    */
   @Override
-  public void destroy() {
-    this.defaultFilter.destroy();
+  public void init(FilterConfig filterConfig) throws ServletException {
+    this.defaultFilter.init(filterConfig);
   }
 }

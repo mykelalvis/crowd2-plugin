@@ -1,20 +1,20 @@
 /*
  * @(#)CrowdAuthenticationToken.java
- * 
+ *
  * The MIT License
- * 
+ *
  * Copyright (C)2011 Thorsten Heit.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,7 +37,7 @@ import jenkins.model.Jenkins;
 /**
  * This class represents an authentication token that is created after a user
  * was successfully authenticated against the remote Crowd server.
- * 
+ *
  * @author <a href="mailto:theit@gmx.de">Thorsten Heit (theit@gmx.de)</a>
  * @since 07.09.2011
  * @version $Id$
@@ -46,18 +46,33 @@ public class CrowdAuthenticationToken extends AbstractAuthenticationToken {
   /** For serialization. */
   private static final long serialVersionUID = 7685110934682676618L;
 
+  /**
+   * Gets the corresponding {@link hudson.model.User} object.
+   */
+  private static hudson.model.User getJenkinsUser(String username) {
+    return hudson.model.User.get(username);
+  }
+
+  public static void updateUserInfo(com.atlassian.crowd.model.user.User user) {
+    final String displayName = user == null ? null : user.getDisplayName();
+    if (StringUtils.isNotBlank(displayName)) {
+      final String username = user.getName();
+      CrowdAuthenticationToken.getJenkinsUser(username).setFullName(displayName + " (" + username + ')');
+    }
+  }
+
   /** The SSO token. */
-  private String credentials;
+  private final String credentials;
 
   /** The authenticated Crowd user. */
-  private UserDetails principal;
+  private final UserDetails principal;
 
   /** The Crowd SSO token after a successful login. */
-  private String ssoToken;
+  private final String ssoToken;
 
   /**
    * Creates a new authorization token.
-   * 
+   *
    * @param pPrincipal
    *            The name of the authenticated Crowd user. May not be
    *            <code>null</code>.
@@ -82,7 +97,7 @@ public class CrowdAuthenticationToken extends AbstractAuthenticationToken {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.acegisecurity.Authentication#getCredentials()
    */
   @Override
@@ -92,27 +107,7 @@ public class CrowdAuthenticationToken extends AbstractAuthenticationToken {
 
   /**
    * {@inheritDoc}
-   * 
-   * @see org.acegisecurity.Authentication#getPrincipal()
-   */
-  @Override
-  public UserDetails getPrincipal() {
-    return this.principal;
-  }
-
-  /**
-   * Returns the SSO token.
-   * 
-   * @return The SSO token. <code>null</code> if the token is not (yet)
-   *         available.
-   */
-  public String getSSOToken() {
-    return this.ssoToken;
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
+   *
    * @see org.acegisecurity.providers.AbstractAuthenticationToken#getName()
    */
   @Override
@@ -127,18 +122,23 @@ public class CrowdAuthenticationToken extends AbstractAuthenticationToken {
     	*/
   }
 
-  public static void updateUserInfo(com.atlassian.crowd.model.user.User user) {
-    final String displayName = user == null ? null : user.getDisplayName();
-    if (StringUtils.isNotBlank(displayName)) {
-      final String username = user.getName();
-      getJenkinsUser(username).setFullName(displayName + " (" + username + ')');
-    }
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.acegisecurity.Authentication#getPrincipal()
+   */
+  @Override
+  public UserDetails getPrincipal() {
+    return this.principal;
   }
 
   /**
-   * Gets the corresponding {@link hudson.model.User} object.
+   * Returns the SSO token.
+   *
+   * @return The SSO token. <code>null</code> if the token is not (yet)
+   *         available.
    */
-  private static hudson.model.User getJenkinsUser(String username) {
-    return hudson.model.User.get(username);
+  public String getSSOToken() {
+    return this.ssoToken;
   }
 }

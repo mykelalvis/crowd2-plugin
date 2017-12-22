@@ -57,9 +57,9 @@ public class CrowdMailAddressResolverImpl extends MailAddressResolver {
   @Override
   public String findMailAddressFor(User u) {
     String mail = null;
-    SecurityRealm realm = Jenkins.getInstance().getSecurityRealm();
+    final SecurityRealm realm = Jenkins.getInstance().getSecurityRealm();
 
-    if (realm instanceof CrowdSecurityRealm) {
+    if (realm instanceof CrowdSecurityRealm)
       try {
         // Workaround:
         // The user object given as parameter contains the user's
@@ -68,27 +68,24 @@ public class CrowdMailAddressResolverImpl extends MailAddressResolver {
         // is actually appended at the end of the display name in
         // brackets
         String userId = u.getId();
-        int pos = userId.lastIndexOf('(');
+        final int pos = userId.lastIndexOf('(');
         if (pos > 0) {
-          int pos2 = userId.indexOf(')', pos + 1);
-          if (pos2 > pos) {
+          final int pos2 = userId.indexOf(')', pos + 1);
+          if (pos2 > pos)
             userId = userId.substring(pos + 1, pos2);
-          }
         }
 
-        if (LOG.isLoggable(Level.FINE)) {
-          LOG.fine("Looking up mail address for user: " + userId);
-        }
-        CrowdUser details = (CrowdUser) realm.loadUserByUsername(userId);
+        if (CrowdMailAddressResolverImpl.LOG.isLoggable(Level.FINE))
+          CrowdMailAddressResolverImpl.LOG.fine("Looking up mail address for user: " + userId);
+        final CrowdUser details = (CrowdUser) realm.loadUserByUsername(userId);
         mail = details.getEmailAddress();
-      } catch (UsernameNotFoundException ex) {
-        if (LOG.isLoggable(Level.INFO)) {
-          LOG.info("Failed to look up email address in Crowd");
-        }
-      } catch (DataAccessException ex) {
-        LOG.log(Level.SEVERE, "Access exception trying to look up email address in Crowd", ex);
+      } catch (final UsernameNotFoundException ex) {
+        if (CrowdMailAddressResolverImpl.LOG.isLoggable(Level.INFO))
+          CrowdMailAddressResolverImpl.LOG.info("Failed to look up email address in Crowd");
+      } catch (final DataAccessException ex) {
+        CrowdMailAddressResolverImpl.LOG.log(Level.SEVERE, "Access exception trying to look up email address in Crowd",
+            ex);
       }
-    }
 
     return mail;
   }
