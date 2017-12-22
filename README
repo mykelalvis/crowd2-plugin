@@ -1,7 +1,7 @@
-crowd2-plugin for Jenkins
+crowd3-plugin for Jenkins
 =========================
 
-This plugin delegates the authentication to a remote Crowd server
+This plugin delegates the authentication to a remote Crowd 3 server
 (http://www.atlassian.com/software/crowd). With this setting, users can
 login by entering their Crowd username and password.
 

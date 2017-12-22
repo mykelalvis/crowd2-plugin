@@ -524,8 +524,6 @@ public class CrowdSecurityRealm extends AbstractPasswordBasedSecurityRealm {
         @QueryParameter String httpProxyPassword, @QueryParameter String socketTimeout,
         @QueryParameter String httpTimeout, @QueryParameter String httpMaxConnections) {
 
-      //			Logger log = Logger.getLogger(getClass().getName());
-
       CrowdConfigurationService tConfiguration = new CrowdConfigurationService(group, false);
       Properties props = CrowdConfigurationService.getProperties(url, applicationName, password,
           sessionValidationInterval, useSSO, cookieDomain, cookieTokenkey, useProxy, httpProxyHost, httpProxyPort,
@@ -542,7 +540,6 @@ public class CrowdSecurityRealm extends AbstractPasswordBasedSecurityRealm {
             return FormValidation.error(groupNotFound(groupName));
           }
         }
-
         return FormValidation.ok("OK");
       } catch (InvalidAuthenticationException ex) {
         LOG.log(Level.WARNING, invalidAuthentication(), ex);
@@ -565,7 +562,7 @@ public class CrowdSecurityRealm extends AbstractPasswordBasedSecurityRealm {
      */
     @Override
     public String getDisplayName() {
-      return "Crowd 2";
+      return "Crowd 3";
     }
   }
 }
